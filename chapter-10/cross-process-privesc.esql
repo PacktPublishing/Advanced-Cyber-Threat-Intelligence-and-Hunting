@@ -1,0 +1,22 @@
+from logs-endpoint.events.api*
+| where process.Ext.token.integrity_level_name in ("low", "medium")
+    and Target.process.Ext.token.integrity_level_name in ("high", "system")
+    and process.Ext.api.name in (
+      "OpenProcess",
+      "WriteProcessMemory",
+      "VirtualAllocEx",
+      "VirtualProtectEx",
+      "CreateRemoteThread",
+      "QueueUserAPC",
+      "NtQueueApcThread",
+      "MapViewOfFile",
+      "MapViewOfFileEx"
+    )
+| stats
+    occurrences = count(*),
+    hosts       = count_distinct(host.id),
+    first_seen  = min(@timestamp),
+    last_seen   = max(@timestamp)
+  by process.executable, Target.process.executable, process.Ext.api.name
+| where hosts <= 2 and occurrences <= 200
+| sort occurrences asc

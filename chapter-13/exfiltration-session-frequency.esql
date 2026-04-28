@@ -1,0 +1,22 @@
+FROM logs-network_traffic-*
+| WHERE @timestamp >= now() - 7d
+| WHERE network.direction == "outbound"
+  AND destination.ip   IS NOT NULL
+  AND destination.port IS NOT NULL
+| EVAL day_bucket = DATE_FORMAT(@timestamp, "yyyy-MM-dd")
+| EVAL is_recent  = CASE(@timestamp >= now() - 24h, true, false)
+| STATS
+    daily_count = COUNT(*)
+  BY source.ip, destination.ip, destination.port, network.transport,
+     day_bucket, is_recent
+| STATS
+    baseline_avg_daily = AVG(CASE(is_recent == false, daily_count, NULL)),
+    recent_daily       = MAX(CASE(is_recent == true,  daily_count, NULL))
+  BY source.ip, destination.ip, destination.port, network.transport
+| WHERE baseline_avg_daily IS NOT NULL
+  AND baseline_avg_daily > 0
+  AND recent_daily IS NOT NULL
+| EVAL frequency_increase = recent_daily / baseline_avg_daily
+| WHERE frequency_increase > 3.0 AND recent_daily > 100
+| SORT frequency_increase DESC
+| LIMIT 100

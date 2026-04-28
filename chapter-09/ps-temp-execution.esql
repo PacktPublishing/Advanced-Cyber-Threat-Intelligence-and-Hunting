@@ -1,0 +1,4 @@
+FROM logs-*
+| WHERE file.path LIKE "*\\\\AppData\\\\Local\\\\Temp\\\\*"
+    AND process.name IN ("powershell.exe")
+| KEEP process.name, process.command_line, file.path, user.name, host.name, @timestamp

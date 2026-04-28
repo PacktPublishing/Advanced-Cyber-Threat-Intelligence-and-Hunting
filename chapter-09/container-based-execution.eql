@@ -1,0 +1,14 @@
+sequence by host.id, user.name with maxspan=5m
+  [file where
+    file.extension in ("iso", "img") and
+    event.action in ("open", "open_file", "mount", "attach")
+  ]
+  [process where
+    process.name in (
+      "wscript.exe", "cscript.exe", "powershell.exe",
+      "cmd.exe", "mshta.exe", "rundll32.exe"
+    ) and (
+      process.command_line like "*:\\*.lnk" or
+      process.command_line like "*:\\*.vbs"
+    )
+  ]

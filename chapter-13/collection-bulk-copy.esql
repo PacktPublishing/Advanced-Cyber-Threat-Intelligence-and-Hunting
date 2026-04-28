@@ -1,0 +1,30 @@
+FROM logs-endpoint.events.process-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "process" AND event.action == "start"
+| WHERE process.command_line IS NOT NULL
+| WHERE (
+    (process.name == "robocopy.exe" AND (
+      process.command_line LIKE "*/S*"
+      OR process.command_line LIKE "*/E*"
+      OR process.command_line LIKE "*/MIR*"
+    ))
+    OR (process.name == "xcopy.exe" AND (
+      process.command_line LIKE "*/S*"
+      OR process.command_line LIKE "*/E*"
+    ))
+    OR (process.name IN ("powershell.exe", "pwsh.exe") AND (
+      process.command_line LIKE "*Copy-Item*"
+      AND process.command_line LIKE "*-Recurse*"
+    ))
+    OR (process.name == "cmd.exe" AND (
+      process.command_line LIKE "*copy*\\\\*"
+    ))
+  )
+| STATS
+    occurrences = COUNT(*),
+    hosts       = VALUES(host.id),
+    commands    = VALUES(process.command_line),
+    users       = VALUES(user.name)
+  BY process.name, process.parent.name
+| SORT occurrences DESC
+| LIMIT 100

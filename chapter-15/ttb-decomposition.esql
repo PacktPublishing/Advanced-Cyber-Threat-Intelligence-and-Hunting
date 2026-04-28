@@ -1,0 +1,14 @@
+FROM logs-*
+| WHERE @timestamp >= NOW() - 30 days AND host.name == "WKST-0142"
+| EVAL
+    time_context = CASE(
+      // same classification logic as above query
+    ),
+    terrain_category = CASE(
+      // same classification logic as above query
+    ),
+    behavior_category = CASE(
+      // same classification logic as above query
+    )
+| STATS event_count = COUNT(*) BY time_context, terrain_category, behavior_category
+| SORT event_count DESC

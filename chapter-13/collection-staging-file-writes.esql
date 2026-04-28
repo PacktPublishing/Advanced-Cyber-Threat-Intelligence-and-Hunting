@@ -1,0 +1,27 @@
+FROM logs-endpoint.events.file-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "file"
+    AND event.action IN ("creation", "modification")
+    AND process.name IS NOT NULL
+    AND file.size > 0
+| EVAL dir_path = SUBSTRING(file.path, 0, LENGTH(file.path) - LENGTH(file.name))
+| STATS
+    files_written = COUNT(*),
+    total_bytes   = SUM(file.size),
+    unique_files  = COUNT_DISTINCT(file.name),
+    first_seen    = MIN(@timestamp),
+    last_seen     = MAX(@timestamp),
+    processes     = VALUES(process.name),
+    users         = VALUES(user.name)
+  BY host.id, dir_path
+| EVAL duration_seconds = DATE_DIFF("seconds", first_seen, last_seen)
+| WHERE files_written > 250 AND duration_seconds < 600
+  AND (
+    dir_path LIKE "*\\Temp\\*"
+    OR dir_path LIKE "*\\PerfLogs\\*"
+    OR dir_path LIKE "*\\ProgramData\\*"
+    OR dir_path LIKE "*\\Users\\Public\\*"
+    OR dir_path LIKE "*\\$Recycle.Bin\\*"
+  )
+| SORT files_written DESC
+| LIMIT 100

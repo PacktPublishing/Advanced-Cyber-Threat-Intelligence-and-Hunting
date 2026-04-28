@@ -1,0 +1,16 @@
+FROM logs-endpoint.events.file-*
+| WHERE @timestamp >= now() - 1h
+| WHERE event.category == "file"
+    AND event.action IN ("modification", "overwrite", "rename")
+    AND process.name IS NOT NULL
+| STATS
+    files_modified    = COUNT(*),
+    unique_extensions = COUNT_DISTINCT(file.extension),
+    unique_dirs       = COUNT_DISTINCT(SUBSTRING(file.path, 0, LENGTH(file.path) - LENGTH(file.name))),
+    first_seen        = MIN(@timestamp),
+    last_seen         = MAX(@timestamp)
+  BY host.id, process.name, process.pid, user.name
+| EVAL duration_seconds = DATE_DIFF("seconds", first_seen, last_seen)
+| WHERE files_modified > 1000 AND duration_seconds < 300
+| SORT files_modified DESC
+| LIMIT 100

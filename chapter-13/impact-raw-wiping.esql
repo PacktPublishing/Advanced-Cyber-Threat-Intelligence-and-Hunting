@@ -1,0 +1,17 @@
+FROM logs-endpoint.events.file-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "file"
+    AND (
+      file.path LIKE "*\\\\.\\PhysicalDrive*"
+      OR file.path LIKE "*\\\\.\\HarddiskVolume*"
+    )
+    AND process.name IS NOT NULL
+| STATS
+    accesses  = COUNT(*),
+    hosts     = VALUES(host.name),
+    processes = VALUES(process.name),
+    parents   = VALUES(process.parent.name),
+    users     = VALUES(user.name)
+  BY process.executable
+| SORT accesses DESC
+| LIMIT 100

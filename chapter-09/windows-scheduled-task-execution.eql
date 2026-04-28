@@ -1,0 +1,9 @@
+sequence by winlog.event_data.TaskName with maxspan=1m
+  [task_created where
+    event.code     == "4698" and
+    winlog.channel == "Security"
+  ]
+  [task_deleted where
+    event.code     == "4699" and
+    winlog.channel == "Security"
+  ]

@@ -1,0 +1,18 @@
+title: CreateRemoteThread Detected (Sysmon Event ID 8)
+id: 4b3c8f9e-7c4a-4a6b-9a41-1f8c2b0c1d77
+status: experimental
+logsource:
+  product: windows
+  service: sysmon
+detection:
+  selection:
+    EventID: 8
+  filter_wmi_noise:
+    SourceImage|endswith: '\wbem\wmiprvse.exe'
+    TargetImage|endswith: '\svchost.exe'
+  filter_csrss:
+    SourceImage|endswith: '\csrss.exe'
+  condition: selection and not 1 of filter_*
+level: high
+tags:
+  - attack.t1055

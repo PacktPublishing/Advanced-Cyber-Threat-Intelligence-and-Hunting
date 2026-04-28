@@ -1,0 +1,15 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 24 hours
+    AND event.action  == "GetObject"
+    AND event.outcome == "success"
+| EVAL
+    principal = aws.cloudtrail.user_identity.arn,
+    bucket    = aws.cloudtrail.request_parameters.bucketName,
+    hour      = DATE_TRUNC(1 hour, @timestamp)
+| STATS
+    objects_accessed = COUNT(*),
+    distinct_keys    = COUNT_DISTINCT(aws.cloudtrail.request_parameters.key),
+    source_ips       = VALUES(source.ip)
+  BY principal, bucket, hour
+| WHERE objects_accessed > 100
+| SORT objects_accessed DESC

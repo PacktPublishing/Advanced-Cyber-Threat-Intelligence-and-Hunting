@@ -1,0 +1,4 @@
+sequence by winlog.event_data.ServiceName with maxspan=1m
+  [service_created where event.code == "7045"]
+  [service_started where event.code == "7036"]
+  [service_deleted where event.code == "7035" or event.code == "7034"]

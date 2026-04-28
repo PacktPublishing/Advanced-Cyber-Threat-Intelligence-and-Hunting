@@ -1,0 +1,20 @@
+title: High-Entropy Request Body to Script
+id: 337ac8ed-066f-475c-8831-46d21bfba90e
+status: experimental
+description: Detect high-entropy POSTs to script endpoints
+logsource:
+  product: http
+detection:
+  selection:
+    request_path|endswith:
+      - ".php"
+      - ".aspx"
+      - ".jsp"
+      - ".cgi"
+  condition: selection and request_body_entropy >= 4.5 and request_body_length < 5000
+falsepositives:
+  - Legitimate uploads that contain binary payloads; tune via allowlist.
+level: high
+tags:
+  - ttp:web-shell
+  - technique:T1505

@@ -1,0 +1,7 @@
+process where
+  event.category == "process"
+  and process.name in ("powershell.exe", "pwsh.exe", "cmd.exe")
+  and (
+    process.command_line like "*Export-PfxCertificate*"
+    or process.command_line like "*certutil*exportPFX*"
+  )

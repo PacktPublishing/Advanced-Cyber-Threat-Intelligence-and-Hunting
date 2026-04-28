@@ -1,0 +1,46 @@
+PUT _transform/ephemeral-lolbas-baseline
+{
+  "source": {
+    "index": ["logs-endpoint.events.process-*"],
+    "query": {
+      "bool": {
+        "must": [
+          { "term": { "event.category": "process" } },
+          { "term": { "event.action": "start" } },
+          {
+            "terms": {
+              "process.name.keyword": [
+                "powershell.exe", "certutil.exe", "rundll32.exe",
+                "regsvr32.exe", "mshta.exe", "wmic.exe",
+                "bitsadmin.exe", "msbuild.exe", "cmd.exe"
+              ]
+            }
+          },
+          { "range": { "@timestamp": { "gte": "now-30d/d" } } }
+        ]
+      }
+    }
+  },
+  "dest": { "index": "baseline-lolbas-30d" },
+  "pivot": {
+    "group_by": {
+      "host":    { "terms": { "field": "host.name.keyword" } },
+      "binary":  { "terms": { "field": "process.name.keyword" } },
+      "command": { "terms": { "field": "process.command_line.keyword" } }
+    },
+    "aggregations": {
+      "day_count": {
+        "cardinality": {
+          "script": {
+            "source": "doc['@timestamp'].value.toInstant().toEpochMilli()/86400000"
+          }
+        }
+      },
+      "last_seen":  { "max":         { "field": "@timestamp" } },
+      "user_count": { "cardinality": { "field": "user.name.keyword" } }
+    }
+  },
+  "sync": {
+    "time": { "field": "@timestamp", "delay": "1h" }
+  }
+}

@@ -1,0 +1,27 @@
+title: Process Memory Dump Via Comsvcs.DLL
+id: 2f63af2d-f23e-4ae9-9e89-986a63085d75
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        - Image|endswith: '\rundll32.exe'
+        - OriginalFileName: 'RUNDLL32.EXE'
+        - CommandLine|contains: 'rundll32'
+    selection_cli:
+        CommandLine|contains|all:
+            - 'comsvcs'
+            - 'full'
+        CommandLine|contains:
+            - '#-'
+            - '#+'
+            - '#24'
+            - '24 '
+            - 'MiniDump'
+    condition: selection_img and selection_cli
+falsepositives:
+    - Unlikely
+tags:
+    - attack.defense-evasion
+    - attack.credential-access
+level: high

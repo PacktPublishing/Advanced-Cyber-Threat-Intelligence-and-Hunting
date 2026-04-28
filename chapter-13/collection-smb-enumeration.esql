@@ -1,0 +1,16 @@
+FROM logs-endpoint.events.file-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "file"
+    AND file.path LIKE "\\\\*"
+    AND user.name IS NOT NULL
+| EVAL share = SUBSTRING(file.path, 0, LOCATE(file.path, "\\", LOCATE(file.path, "\\", 3) + 1))
+| STATS
+    unique_shares  = COUNT_DISTINCT(share),
+    total_accesses = COUNT(*),
+    hosts_accessed = COUNT_DISTINCT(host.id),
+    first_seen     = MIN(@timestamp),
+    last_seen      = MAX(@timestamp)
+  BY user.name
+| WHERE unique_shares > 10 AND hosts_accessed > 3
+| SORT unique_shares DESC
+| LIMIT 100

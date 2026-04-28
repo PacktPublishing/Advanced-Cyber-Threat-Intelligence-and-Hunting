@@ -1,0 +1,5 @@
+FROM logs-web_proxy-*
+| WHERE @timestamp >= now() - 7d
+| STATS global_count = COUNT(*) BY user_agent.original
+| RENAME user_agent.original AS user_agent_key
+| KEEP user_agent_key, global_count

@@ -1,0 +1,8 @@
+registry where
+  event.action in ("set", "create")
+  and registry.data.strings != null
+  and (
+    registry.path : "*\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\*"
+    or registry.path : "*\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\\*"
+  )
+  and registry.data.strings regex "(?i)\\\\(Users\\\\[^\\\\]+\\\\AppData|Users\\\\Public|ProgramData|Windows\\\\Temp|Temp|Downloads)\\\\"

@@ -1,0 +1,12 @@
+SigninLogs
+| where TimeGenerated > ago(1h)
+| where ResultType == 0  // Successful logins only
+// Filter out non-interactive noise if necessary
+| summarize
+    IPCount     = dcount(IPAddress),
+    IPList      = make_set(IPAddress),
+    UserAgents  = make_set(UserAgent),
+    Locations   = make_set(Location)
+    by SessionId, UserPrincipalName
+| where IPCount > 1
+| extend Judgement = "Critical: Single Session ID used from multiple IPs"

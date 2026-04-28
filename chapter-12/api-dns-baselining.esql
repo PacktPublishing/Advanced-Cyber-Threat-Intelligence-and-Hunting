@@ -1,0 +1,25 @@
+FROM logs-endpoint.events.dns-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "dns"
+    AND host.type == "workstation"
+    AND host.tag  == "operations"
+    AND dns.question.name IS NOT NULL
+    AND NOT (process.name IN ("chrome.exe", "firefox.exe", "msedge.exe"))
+| EVAL domain = REGEXP_EXTRACT(dns.question.name, "([^.]+\\.[^.]+)$", 1)
+| STATS
+    occurrences = COUNT(*),
+    first_seen  = MIN(@timestamp),
+    last_seen   = MAX(@timestamp)
+  BY domain, host.id, process.name, dns.question.type
+| STATS
+    host_count        = COUNT_DISTINCT(host.id),
+    max_occurrences   = MAX(occurrences),
+    total_occurrences = SUM(occurrences),
+    first_seen        = MIN(first_seen),
+    last_seen         = MAX(last_seen),
+    processes         = VALUES(process.name),
+    qtypes            = VALUES(dns.question.type)
+  BY domain
+| WHERE host_count <= 2 AND total_occurrences >= 50
+| SORT host_count ASC, total_occurrences DESC
+| LIMIT 200

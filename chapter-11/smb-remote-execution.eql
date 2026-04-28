@@ -1,0 +1,11 @@
+sequence with maxspan=10s
+  [file where
+    event.type in ("creation", "change") and
+    process.name == "System" and
+    file.extension : "exe" and
+    event.kind == "event"
+  ] by host.id, file.path
+  [process where
+    event.type in ("start", "process_started") and
+    event.kind == "event"
+  ] by host.id, process.executable

@@ -1,0 +1,22 @@
+FROM logs-network_traffic-*
+| WHERE @timestamp >= now() - 7d
+| WHERE network.direction == "outbound"
+    AND destination.ip   IS NOT NULL
+    AND destination.port IS NOT NULL
+    AND event.duration   IS NOT NULL
+| EVAL is_recent    = CASE(@timestamp >= now() - 24h, true, false)
+| EVAL duration_sec = event.duration / 1000000000.0
+| STATS
+    baseline_avg_duration = AVG(CASE(is_recent == false, duration_sec, NULL)),
+    baseline_max_duration = MAX(CASE(is_recent == false, duration_sec, NULL)),
+    recent_avg_duration   = AVG(CASE(is_recent == true,  duration_sec, NULL)),
+    recent_max_duration   = MAX(CASE(is_recent == true,  duration_sec, NULL)),
+    recent_sessions       = SUM(CASE(is_recent == true,  1, 0)),
+    baseline_sessions     = SUM(CASE(is_recent == false, 1, 0))
+  BY source.ip, destination.ip, destination.port, network.transport
+| WHERE baseline_sessions >= 10 AND recent_sessions >= 5
+| WHERE baseline_avg_duration > 0
+| EVAL duration_increase = recent_avg_duration / baseline_avg_duration
+| WHERE duration_increase > 5.0 AND recent_avg_duration > 2.0
+| SORT duration_increase DESC
+| LIMIT 100

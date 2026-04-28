@@ -1,0 +1,7 @@
+{
+  "match": {
+    "indices": "host_peer_group_index",
+    "match_field": "host.name",
+    "enrich_fields": ["peer_group"]
+  }
+}

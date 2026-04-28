@@ -1,0 +1,10 @@
+sequence by host.id with maxspan=10m
+  [http where
+    http.request.method == "POST" and
+    (url.path regex~ ".*\\.(aspx|php|jsp)$") and
+    not url.path in ("/upload.aspx", "/media/upload.php")
+  ]
+  [process where
+    process.parent.name in ("w3wp.exe", "php-cgi.exe") and
+    process.name in ("cmd.exe", "powershell.exe")
+  ]

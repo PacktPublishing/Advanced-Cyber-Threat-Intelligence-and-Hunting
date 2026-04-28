@@ -1,0 +1,5 @@
+file where
+  host.os.type == "windows"
+  and event.action in ("creation", "overwrite", "modify")
+  and file.path : "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\Outlook\\VbaProject.OTM"
+  and process.name != "OUTLOOK.EXE"

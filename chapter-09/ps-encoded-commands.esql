@@ -1,0 +1,3 @@
+FROM logs-*
+| WHERE process.command_line LIKE ("*powershell*EncodedCommand*" OR "*powershell*-Enc*")
+| KEEP process.command_line, user.name, host.name, @timestamp

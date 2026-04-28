@@ -1,0 +1,19 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 30 days
+  AND event.action  == "AssumeRole"
+  AND event.outcome == "success"
+| EVAL
+    source_account = aws.cloudtrail.user_identity.account_id,
+    target_account = aws.cloudtrail.recipient_account_id,
+    caller         = aws.cloudtrail.user_identity.arn,
+    assumed_role   = aws.cloudtrail.request_parameters.roleArn
+| WHERE source_account != target_account
+| STATS
+    event_count = COUNT(*),
+    first_seen  = MIN(@timestamp),
+    last_seen   = MAX(@timestamp),
+    source_ips  = VALUES(source.ip),
+    ip_count    = COUNT_DISTINCT(source.ip)
+  BY source_account, target_account, caller, assumed_role
+| WHERE first_seen >= NOW() - 7 days
+| SORT first_seen ASC

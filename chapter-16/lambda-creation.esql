@@ -1,0 +1,21 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 14 days
+  AND event.action IN (
+    "CreateFunction20150331", "UpdateFunctionCode20150331v2",
+    "AddPermission20150331v2", "CreateEventSourceMapping20150331"
+  )
+  AND event.outcome == "success"
+| EVAL
+    principal     = aws.cloudtrail.user_identity.arn,
+    function_name = aws.cloudtrail.request_parameters.functionName,
+    role_attached = aws.cloudtrail.request_parameters.role
+| STATS
+    actions       = VALUES(event.action),
+    action_count  = COUNT_DISTINCT(event.action),
+    functions     = VALUES(function_name),
+    roles         = VALUES(role_attached),
+    source_ips    = VALUES(source.ip),
+    first_seen    = MIN(@timestamp)
+  BY principal
+| WHERE action_count >= 2
+| SORT first_seen ASC

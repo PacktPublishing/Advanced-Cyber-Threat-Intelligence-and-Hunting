@@ -1,0 +1,25 @@
+FROM logs-endpoint-*
+| WHERE process.name IN (
+    "S7TgtOPx.exe",
+    "RSLogix5000.exe",
+    "Studio5000.exe",
+    "UnityPro.exe",
+    "ProficyMachineEdition.exe"
+  )
+| EVAL
+    workstation = host.name,
+    engineer    = user.name,
+    binary      = process.name
+| LOOKUP maintenance_windows ON workstation
+| WHERE
+    (maintenance_windows.start IS NULL
+     OR @timestamp NOT BETWEEN maintenance_windows.start .. maintenance_windows.end)
+| STATS
+    exec_count = COUNT(*),
+    first_seen = MIN(@timestamp),
+    engineers  = VALUES(engineer),
+    source_ips = VALUES(source.ip)
+  BY workstation, binary
+| WHERE exec_count <= 2
+| SORT first_seen ASC
+| KEEP workstation, binary, exec_count, first_seen, engineers, source_ips

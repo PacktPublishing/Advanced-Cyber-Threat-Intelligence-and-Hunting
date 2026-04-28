@@ -1,0 +1,8 @@
+sequence with maxspan=5m
+  [process where event.action == "start" and
+    process.Ext.token.integrity_level_name in ("low", "medium")
+  ] by process.entity_id
+  [process where event.action == "start" and
+    process.Ext.token.integrity_level_name == "system" and
+    user.id : "S-1-5-18"
+  ] by process.parent.entity_id

@@ -1,0 +1,20 @@
+FROM logs-endpoint.events.process-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "process" AND event.action == "start"
+| WHERE (
+    (process.name == "vssadmin.exe"
+      AND process.command_line LIKE "*delete*shadow*")
+    OR (process.name == "wmic.exe"
+      AND process.command_line LIKE "*shadowcopy*delete*")
+    OR (process.name IN ("powershell.exe", "pwsh.exe")
+      AND process.command_line LIKE "*Win32_ShadowCopy*"
+      AND process.command_line LIKE "*Delete*")
+  )
+| STATS
+    executions = COUNT(*),
+    hosts      = VALUES(host.name),
+    commands   = VALUES(process.command_line),
+    parents    = VALUES(process.parent.name)
+  BY user.name, process.name
+| SORT executions DESC
+| LIMIT 100

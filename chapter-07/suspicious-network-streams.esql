@@ -1,0 +1,14 @@
+FROM logs-*
+| WHERE network.transport == "tcp" AND destination.port IN (80, 443)
+| WHERE NOT process.name IN ("chrome.exe", "msedge.exe", "firefox.exe", "safari", "outlook.exe")
+| EVAL stream = COALESCE(destination.domain, TO_STRING(destination.ip))
+| STATS
+    first_ts     = MIN(@timestamp),
+    last_ts      = MAX(@timestamp),
+    event_count  = COUNT()
+  BY host.name, process.name, stream
+| EVAL duration_s   = (TO_LONG(last_ts) - TO_LONG(first_ts)) / 1000
+| EVAL avg_interval = duration_s / event_count
+| WHERE event_count >= 8 AND avg_interval > 0 AND avg_interval < 3600
+| SORT avg_interval ASC
+| KEEP host.name, process.name, stream, event_count, avg_interval

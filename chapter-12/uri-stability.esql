@@ -1,0 +1,13 @@
+FROM logs-web_proxy-*
+| WHERE @timestamp >= now() - 24h
+| WHERE url.path IS NOT NULL AND destination.domain IS NOT NULL
+| EVAL uri = CONCAT(url.path, IF(url.query IS NULL, "", CONCAT("?", url.query)))
+| STATS
+    total_requests = COUNT(*),
+    unique_hosts   = COUNT_DISTINCT(destination.domain),
+    hosts          = VALUES(destination.domain),
+    src_ips        = VALUES(source.ip)
+  BY uri
+| WHERE unique_hosts >= 3 AND total_requests >= 20
+| SORT total_requests DESC
+| LIMIT 100

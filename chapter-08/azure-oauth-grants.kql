@@ -1,0 +1,5 @@
+AuditLogs
+| where ActivityDisplayName == "Add OAuth2PermissionGrant"
+| where LoggedByService == "Core Directory"
+| extend App = tostring(TargetResources[0].displayName)
+| project TimeGenerated, InitiatedBy, App, TargetResources

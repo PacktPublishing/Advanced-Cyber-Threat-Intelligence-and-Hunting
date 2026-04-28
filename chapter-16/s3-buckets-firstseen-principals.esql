@@ -1,0 +1,21 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 30 days
+  AND event.action IN (
+    "GetObject", "ListObjects", "ListObjectsV2",
+    "HeadObject", "GetBucketLocation"
+  )
+  AND event.outcome == "success"
+| EVAL
+    principal = aws.cloudtrail.user_identity.arn,
+    bucket    = aws.cloudtrail.request_parameters.bucketName
+| WHERE principal IS NOT NULL AND bucket IS NOT NULL
+| STATS
+    access_count = COUNT(*),
+    first_seen   = MIN(@timestamp),
+    last_seen    = MAX(@timestamp),
+    source_ips   = VALUES(source.ip),
+    ip_count     = COUNT_DISTINCT(source.ip),
+    actions      = VALUES(event.action)
+  BY principal, bucket
+| WHERE first_seen >= NOW() - 7 days
+| SORT first_seen ASC

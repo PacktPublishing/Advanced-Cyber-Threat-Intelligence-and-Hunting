@@ -1,0 +1,25 @@
+title: Run Key Persistence Invoking Script Engine or Shell
+id: 6f2a1d3b-1a3a-4d92-9c59-7b4c4f6c2e01
+status: experimental
+logsource:
+  product: windows
+  category: registry_event
+detection:
+  selection_keys:
+    TargetObject|contains:
+      - '\Software\Microsoft\Windows\CurrentVersion\Run'
+      - '\Software\Microsoft\Windows\CurrentVersion\RunOnce'
+  selection_scripting:
+    Details|contains:
+      - 'powershell'
+      - 'cmd.exe'
+      - 'wscript.exe'
+      - 'cscript.exe'
+      - 'mshta.exe'
+  condition: selection_keys and selection_scripting
+falsepositives:
+  - Legitimate scripts or applications that call PS/cmd at logon
+level: medium
+tags:
+  - attack.persistence
+  - attack.t1547.001

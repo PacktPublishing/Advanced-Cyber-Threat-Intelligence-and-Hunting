@@ -1,0 +1,14 @@
+let interval = 20m;
+let threshold = 3;
+SigninLogs
+| where TimeGenerated > ago(1h)
+| where ResultDescription has "MFA denied" or ResultType == 500121
+| summarize Failures = count() by UserPrincipalName, bin(TimeGenerated, interval)
+| where Failures >= threshold
+| join kind=inner (
+    SigninLogs
+    | where TimeGenerated > ago(1h)
+    | where ResultType == 0
+) on UserPrincipalName
+| where TimeGenerated1 > TimeGenerated
+| project UserPrincipalName, FailureCount=Failures, SuccessTime=TimeGenerated1

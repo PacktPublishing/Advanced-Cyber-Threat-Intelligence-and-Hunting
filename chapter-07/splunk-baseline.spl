@@ -1,0 +1,13 @@
+index=sysmon sourcetype=XmlWinEventLog:Microsoft-Windows-Sysmon/Operational EventCode=3
+| eval day=strftime(_time,"%Y-%m-%d")
+| where _time >= relative_time(now(), "-30d@d")
+| stats dc(day) as day_count, max(_time) as last_seen
+    by host process_name dest_ip dest_port
+| eval today_start=relative_time(now(),"@d")
+| where last_seen >= today_start AND day_count==1
+| lookup dnslookup clientip=dest_ip OUTPUTNEW domain
+| where NOT cidrmatch("10.0.0.0/8", dest_ip)
+    AND NOT cidrmatch("172.16.0.0/12", dest_ip)
+    AND NOT cidrmatch("192.168.0.0/16", dest_ip)
+| table _time host process_name dest_ip domain dest_port day_count last_seen
+| sort host process_name

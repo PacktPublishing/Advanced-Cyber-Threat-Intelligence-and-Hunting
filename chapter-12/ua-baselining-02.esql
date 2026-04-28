@@ -1,0 +1,11 @@
+FROM logs-web_proxy-*
+| WHERE @timestamp >= now() - 24h
+| STATS
+    local_count  = COUNT(*),
+    destinations = VALUES(destination.domain)
+  BY user_agent.original, source.ip
+| RENAME user_agent.original AS user_agent_key
+| LOOKUP JOIN ua_rarity_lookup ON user_agent_key
+| WHERE global_count < 10 AND local_count > 50
+| SORT local_count DESC
+| LIMIT 100

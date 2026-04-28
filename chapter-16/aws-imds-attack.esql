@@ -1,0 +1,21 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 7 days
+  AND aws.cloudtrail.user_identity.type == "AssumedRole"
+  AND aws.cloudtrail.user_identity.session_context.session_issuer.type == "Role"
+  AND event.outcome == "success"
+| EVAL
+    role_arn   = aws.cloudtrail.user_identity.session_context.session_issuer.arn,
+    caller_ip  = source.ip,
+    api_action = event.action
+| WHERE role_arn LIKE "*:role/ec2-*"
+    OR role_arn LIKE "*:role/EC2*"
+    OR role_arn LIKE "*:role/web-*"
+| STATS
+    distinct_ips = COUNT_DISTINCT(caller_ip),
+    ip_list      = VALUES(caller_ip),
+    actions      = VALUES(api_action),
+    action_count = COUNT_DISTINCT(api_action),
+    event_count  = COUNT(*)
+  BY role_arn
+| WHERE distinct_ips > 2
+| SORT distinct_ips DESC

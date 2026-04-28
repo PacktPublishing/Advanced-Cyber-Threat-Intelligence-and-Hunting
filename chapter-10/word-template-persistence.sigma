@@ -1,0 +1,25 @@
+title: Suspicious Modification of Word Global Template (Normal.dotm)
+id: 9f3c4d6a-7c2e-4c8f-9a4b-2e9f7d4c1a33
+status: experimental
+logsource:
+  product: windows
+  category: file_event
+detection:
+  selection_target:
+    TargetFilename|endswith: '\Microsoft\Templates\Normal.dotm'
+  selection_suspicious_process:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\cmd.exe'
+      - '\wscript.exe'
+      - '\cscript.exe'
+  condition: selection_target and selection_suspicious_process
+falsepositives:
+  - Legitimate user customization of Word templates
+  - Office updates or repair operations
+  - Enterprise scripts modifying templates
+level: high
+tags:
+  - attack.persistence
+  - attack.t1137.001

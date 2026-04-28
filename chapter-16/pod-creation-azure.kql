@@ -1,0 +1,24 @@
+AzureDiagnostics
+| where TimeGenerated > ago(14d)
+| extend log_s            = parse_json(log_s)
+| extend verb             = tostring(log_s["verb"])
+| extend objectRef        = log_s["objectRef"]
+| extend requestURI       = tostring(log_s["requestURI"])
+| extend resource         = tostring(objectRef["resource"])
+| where verb == "create"
+| where requestURI !contains "/exec"
+| where resource == "pods"
+| extend spec             = log_s["requestObject"]["spec"]
+| extend containers       = spec["containers"][0]
+| extend username         = tostring(log_s["user"]["username"])
+| extend securityContext  = tostring(containers["securityContext"])
+| where isnotempty(securityContext)
+| where parse_json(todynamic(securityContext)["privileged"]) == "true"
+    or parse_json(todynamic(spec)["hostPID"]) == "true"
+| project
+    TimeGenerated,
+    podName        = tostring(objectRef["name"]),
+    containerImage = tostring(containers["image"]),
+    namespace      = tostring(objectRef["namespace"]),
+    username,
+    securityContext

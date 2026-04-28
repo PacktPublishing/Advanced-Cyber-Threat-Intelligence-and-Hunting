@@ -1,0 +1,14 @@
+SigninLogs
+| where TimeGenerated > ago(30d)
+| where HomeTenantId != ResourceTenantId
+| where ResultType == 0
+| summarize
+    EventCount  = count(),
+    FirstSeen   = min(TimeGenerated),
+    LastSeen    = max(TimeGenerated),
+    DistinctIPs = dcount(IPAddress),
+    IPList      = make_set(IPAddress),
+    AppList     = make_set(AppDisplayName)
+    by HomeTenantId, ResourceTenantId, UserPrincipalName
+| where FirstSeen > ago(7d)
+| sort by FirstSeen asc

@@ -1,0 +1,16 @@
+FROM logs-endpoint.events.file-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "file"
+    AND event.action  == "directory_listing"
+    AND process.name IS NOT NULL
+| EVAL dir_path = SUBSTRING(file.path, 0, LENGTH(file.path) - LENGTH(file.name))
+| STATS
+    unique_dirs  = COUNT_DISTINCT(dir_path),
+    total_events = COUNT(*),
+    first_seen   = MIN(@timestamp),
+    last_seen    = MAX(@timestamp)
+  BY host.id, process.name, user.name
+| EVAL duration_seconds = DATE_DIFF("seconds", first_seen, last_seen)
+| WHERE unique_dirs > 500 AND duration_seconds < 300
+| SORT unique_dirs DESC
+| LIMIT 100

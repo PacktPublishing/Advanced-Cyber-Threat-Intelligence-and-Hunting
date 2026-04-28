@@ -1,0 +1,7 @@
+{
+  "match": {
+    "indices": "peer_group_baselines_index",
+    "match_field": "peer_group",
+    "enrich_fields": ["peer_median_rate"]
+  }
+}

@@ -1,0 +1,17 @@
+FROM logs-network_traffic-*
+| WHERE @timestamp >= NOW() - 24 hours
+  AND network.direction == "outbound"
+  AND destination.ip IS NOT NULL
+  AND source.bytes   IS NOT NULL
+  AND host.type == "server"
+| STATS today_out = SUM(source.bytes) BY source.ip, destination.ip
+| LOOKUP JOIN baseline_daily_volume ON source.ip, destination.ip
+| WHERE avg_daily > 0
+| EVAL deviation_factor = today_out / avg_daily
+| WHERE deviation_factor > 3.0 AND today_out > 10000000
+| SORT deviation_factor DESC
+| LIMIT 100
+| KEEP
+    source.ip, destination.ip,
+    today_out, avg_daily, deviation_factor,
+    max_daily, days_seen

@@ -1,0 +1,27 @@
+from logs-endpoint.events.library-*
+| where event.action in ("load", "image_load")
+  and process.code_signature.trusted == true
+  and process.code_signature.subject_name == "Microsoft Corporation"
+  and (
+    dll.code_signature.trusted != true
+    or dll.code_signature.subject_name != "Microsoft Corporation"
+  )
+  and not dll.path rlike """[C-F]:\\Windows\\(System32|SysWOW64|WinSxS|assembly|SoftwareDistribution|SystemTemp)\\.+\.dll"""
+  and not process.name in (
+    "rundll32.exe",
+    "regsvr32.exe",
+    "powershell.exe",
+    "msiexec.exe",
+    "svchost.exe",
+    "w3wp.exe",
+    "mscorsvw.exe",
+    "OfficeClickToRun.exe",
+    "SetupHost.exe",
+    "UpData.exe",
+    "DismHost.exe"
+  )
+| stats
+    occurrences = count(*),
+    host_count  = count_distinct(host.id)
+  by dll.name, process.name, dll.path
+| where occurrences == 1 and host_count == 1

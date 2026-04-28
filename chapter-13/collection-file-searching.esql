@@ -1,0 +1,29 @@
+FROM logs-endpoint.events.process-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "process" AND event.action == "start"
+| WHERE process.command_line IS NOT NULL
+| WHERE (
+    process.command_line LIKE "*dir /s*"
+    OR process.command_line LIKE "*Get-ChildItem*-Recurse*"
+    OR process.command_line LIKE "*Get-ChildItem*-r *"
+  )
+  AND (
+    process.command_line LIKE "*docx*"
+    OR process.command_line LIKE "*xlsx*"
+    OR process.command_line LIKE "*pst*"
+    OR process.command_line LIKE "*kdbx*"
+    OR process.command_line LIKE "*.conf*"
+    OR process.command_line LIKE "*.env*"
+    OR process.command_line LIKE "*password*"
+    OR process.command_line LIKE "*secret*"
+    OR process.command_line LIKE "*credential*"
+    OR process.command_line LIKE "*api_key*"
+    OR process.command_line LIKE "*token*"
+  )
+| STATS
+    occurrences = COUNT(*),
+    hosts       = COUNT_DISTINCT(host.id),
+    commands    = VALUES(process.command_line)
+  BY user.name, process.parent.name
+| SORT occurrences DESC
+| LIMIT 100

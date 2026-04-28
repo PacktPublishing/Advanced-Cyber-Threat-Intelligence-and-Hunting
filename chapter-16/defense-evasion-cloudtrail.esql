@@ -1,0 +1,20 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 30 days
+  AND event.provider == "cloudtrail.amazonaws.com"
+  AND event.action IN (
+    "StopLogging", "DeleteTrail", "UpdateTrail",
+    "PutEventSelectors", "DeleteEventDataStore"
+  )
+  AND event.outcome == "success"
+| EVAL
+    principal  = aws.cloudtrail.user_identity.arn,
+    trail_name = aws.cloudtrail.request_parameters.name,
+    action     = event.action
+| STATS
+    event_count = COUNT(*),
+    first_seen  = MIN(@timestamp),
+    last_seen   = MAX(@timestamp),
+    source_ips  = VALUES(source.ip),
+    actions     = VALUES(action)
+  BY principal, trail_name
+| SORT first_seen DESC

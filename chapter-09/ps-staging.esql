@@ -1,0 +1,3 @@
+FROM logs-*
+| WHERE process.command_line LIKE ("*Invoke-WebRequest*" OR "*IEX*")
+| KEEP process.command_line, user.name, host.name, @timestamp

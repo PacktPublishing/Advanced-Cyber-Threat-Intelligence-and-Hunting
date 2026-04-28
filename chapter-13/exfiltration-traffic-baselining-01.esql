@@ -1,0 +1,16 @@
+FROM logs-network_traffic-*
+| WHERE @timestamp >= NOW() - 7 days
+  AND network.direction == "outbound"
+  AND destination.ip IS NOT NULL
+  AND source.bytes   IS NOT NULL
+  AND host.type == "server"
+| EVAL day_bucket = DATE_FORMAT(@timestamp, "yyyy-MM-dd")
+| STATS daily_out = SUM(source.bytes) BY source.ip, destination.ip, day_bucket
+| STATS
+    avg_daily = AVG(daily_out),
+    max_daily = MAX(daily_out),
+    std_daily = STDDEV(daily_out),
+    days_seen = COUNT(*)
+  BY source.ip, destination.ip
+| WHERE days_seen >= 3
+| KEEP source.ip, destination.ip, avg_daily, max_daily, std_daily, days_seen

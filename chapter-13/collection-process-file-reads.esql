@@ -1,0 +1,16 @@
+FROM logs-endpoint.events.file-*
+| WHERE @timestamp >= now() - 24h
+| WHERE event.category == "file"
+    AND event.action IN ("open", "read")
+    AND process.name IS NOT NULL
+| STATS
+    file_reads   = COUNT(*),
+    unique_files = COUNT_DISTINCT(file.path),
+    unique_dirs  = COUNT_DISTINCT(SUBSTRING(file.path, 0, LENGTH(file.path) - LENGTH(file.name))),
+    first_seen   = MIN(@timestamp),
+    last_seen    = MAX(@timestamp)
+  BY host.id, process.name, process.pid, user.name
+| EVAL duration_seconds = DATE_DIFF("seconds", first_seen, last_seen)
+| WHERE file_reads > 500 AND duration_seconds < 600
+| SORT file_reads DESC
+| LIMIT 100

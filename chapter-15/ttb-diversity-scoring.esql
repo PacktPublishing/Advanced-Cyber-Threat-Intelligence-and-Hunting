@@ -1,0 +1,43 @@
+FROM logs-*
+| WHERE @timestamp >= NOW() - 30 days
+| EVAL
+    hour_of_day = DATE_EXTRACT("HOUR_OF_DAY", @timestamp),
+    day_of_week = DATE_EXTRACT("DAY_OF_WEEK", @timestamp),
+    is_weekend  = CASE(
+      day_of_week == 1 OR day_of_week == 7, true,
+      false
+    ),
+    time_context = CASE(
+      is_weekend == true AND hour_of_day >= 6 AND hour_of_day <= 20, "weekend_day",
+      is_weekend == true,                                            "weekend_night",
+      hour_of_day >= 9 AND hour_of_day <= 16,                        "business_hours",
+      hour_of_day >= 6 AND hour_of_day <  9,                         "early_morning",
+      hour_of_day >= 17 AND hour_of_day <= 20,                       "evening",
+      "late_night"
+    ),
+    terrain_category = CASE(
+      event.module == "endpoint" OR event.module == "sysmon",                            "endpoint_security",
+      event.module == "suricata" OR event.module == "snort",                             "network_ids",
+      event.module == "firewall",                                                        "firewall",
+      event.module == "proxy",                                                           "web_proxy",
+      event.module == "dns",                                                             "dns_resolution",
+      event.dataset == "windows.security" AND event.code IN ("4624", "4625"),            "authentication",
+      event.module == "o365",                                                            "cloud_services",
+      "other"
+    ),
+    behavior_category = CASE(
+      event.category == "authentication",                              "authentication",
+      event.category == "process" AND event.action == "start",         "process_execution",
+      event.category == "file",                                        "file_operations",
+      event.category == "network" AND event.action == "start",         "network_communication",
+      event.category == "registry",                                    "system_configuration",
+      event.category == "intrusion_detection",                         "ids_alert",
+      "other"
+    )
+| STATS
+    time_diversity     = COUNT_DISTINCT(time_context),
+    terrain_diversity  = COUNT_DISTINCT(terrain_category),
+    behavior_diversity = COUNT_DISTINCT(behavior_category),
+    total_events       = COUNT(*)
+  BY host.name
+| SORT time_diversity DESC, terrain_diversity DESC, behavior_diversity DESC

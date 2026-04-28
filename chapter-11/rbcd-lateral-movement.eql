@@ -1,0 +1,5 @@
+any where
+  event.dataset == "windows.security" and
+  event.code    == "5136" and
+  winlog.event_data.AttributeLDAPDisplayName == "msDS-AllowedToActOnBehalfOfOtherIdentity" and
+  user.name regex ".\\$$"

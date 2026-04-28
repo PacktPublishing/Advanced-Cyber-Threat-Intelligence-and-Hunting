@@ -1,0 +1,18 @@
+FROM logs-network_traffic-*
+| WHERE @timestamp >= now() - 24h
+| WHERE network.direction == "outbound"
+    AND destination.ip    IS NOT NULL
+    AND source.bytes      IS NOT NULL
+    AND destination.bytes IS NOT NULL
+| STATS
+    total_out  = SUM(source.bytes),
+    total_in   = SUM(destination.bytes),
+    sessions   = COUNT(*),
+    first_seen = MIN(@timestamp),
+    last_seen  = MAX(@timestamp)
+  BY source.ip, destination.ip
+| WHERE total_out > 0 AND total_in > 0
+| EVAL ratio = total_out / total_in
+| WHERE ratio > 5.0 AND total_out > 50000000 AND sessions > 10
+| SORT ratio DESC
+| LIMIT 100

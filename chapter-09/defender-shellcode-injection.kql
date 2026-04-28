@@ -1,0 +1,13 @@
+DeviceMemoryEvents
+| where ActionType == "VirtualAlloc"
+| where AllocationType == "Commit"
+| where ProtectionType == "PAGE_EXECUTE_READWRITE"
+// Filter out legitimate processes (browsers, .NET) which can be noisy
+| where ProcessFileName !in ("chrome.exe", "msedge.exe", "devenv.exe")
+| project
+    Timestamp,
+    DeviceName,
+    ProcessFileName,
+    InitiatingProcessFileName,
+    AllocationSize,
+    ProtectionType

@@ -1,0 +1,18 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 7 days
+  AND event.action IN (
+    "AttachUserPolicy", "AttachRolePolicy",
+    "PutUserPolicy",    "PutRolePolicy"
+  )
+  AND event.outcome == "success"
+| EVAL
+    caller = aws.cloudtrail.user_identity.arn,
+    target = COALESCE(
+      aws.cloudtrail.request_parameters.userName,
+      aws.cloudtrail.request_parameters.roleName
+    )
+| WHERE caller IS NOT NULL AND target IS NOT NULL
+| EVAL caller_name = RIGHT(caller, LENGTH(caller) - LENGTH(LEFT(caller, LOCATE("/", caller))))
+| WHERE caller_name == target OR caller LIKE CONCAT("*", target, "*")
+| KEEP @timestamp, caller, target, event.action, source.ip, user_agent.original
+| SORT @timestamp DESC

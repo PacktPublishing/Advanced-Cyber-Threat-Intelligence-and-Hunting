@@ -1,0 +1,11 @@
+FROM logs-aws.cloudtrail-*
+| WHERE @timestamp >= NOW() - 30 days
+  AND event.provider == "iam.amazonaws.com"
+  AND event.outcome  == "success"
+| STATS call_count = COUNT(*) BY aws.cloudtrail.user_identity.arn, event.action
+| EVAL
+    principal  = aws.cloudtrail.user_identity.arn,
+    api_action = event.action
+| WHERE call_count <= 3
+| SORT call_count ASC
+| KEEP principal, api_action, call_count

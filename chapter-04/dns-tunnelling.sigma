@@ -1,0 +1,24 @@
+title: Possible DNS Tunneling
+author: Gianluca Tiepolo
+status: experimental
+description: Detects high amount of queries for a single domain
+date: 2025/09/25
+tags:
+  - attack.command_and_control
+  - attack.t1071.004
+  - attack.exfiltration
+  - attack.t1048.003
+logsource:
+  category: dns
+detection:
+  selection:
+    parent_domain: '*'
+  condition: selection | count(dns_query) by parent_domain > 1000
+fields:
+  - dns_query
+  - parent_domain
+  - src_ip
+falsepositives:
+  - Valid software that uses DNS for high-volume data transfer
+  - Content Delivery Networks (CDNs) with dynamic subdomains
+level: high
