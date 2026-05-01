@@ -1,8 +1,8 @@
 # Advanced Cyber Threat Intelligence and Hunting
 
-![Advanced Cyber Threat Intelligence and Hunting](https://content.packt.com/B34740/cover_image_small.jpg)
+<a href="https://www.packtpub.com/en-us/product/advanced-cyber-threat-intelligence-and-hunting-9781806380398"><img src="https://content.packt.com/_/image/xxlarge/B34740/cover_image_small.jpg" alt="Advanced Cyber Threat Intelligence and Hunting" height="256px" align="right"></a>
 
-This is the companion repository for [Advanced Cyber Threat Intelligence and Hunting](https://www.packtpub.com/en-sg/product/advanced-cyber-threat-intelligence-and-hunting-9781806380398), published by Packt.
+This is the companion repository for [Advanced Cyber Threat Intelligence and Hunting](https://www.packtpub.com/en-us/product/advanced-cyber-threat-intelligence-and-hunting-9781806380398), published by Packt.
 
 **Detect APTs and zero-day attacks using CTI, behavioral analytics, and AI techniques**
 
