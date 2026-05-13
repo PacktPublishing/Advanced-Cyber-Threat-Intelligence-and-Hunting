@@ -107,6 +107,7 @@ Severity is not fixed at assignment. Re-tiering events:
 * **Attribution downgrade** (e.g. attacker reassessed as commodity rather than APT) → re-evaluate threat severity downward
 
 Re-tiering is logged in the team's tracking system with timestamp, rationale, and old/new tier values.
+
 ---
 # Worked Example 1: CVE-2026-31431 (Copy Fail)
 A vulnerability case, end-to-end against the model.
