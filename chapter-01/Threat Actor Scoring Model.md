@@ -93,6 +93,7 @@ Are we specifically reachable given our current environment? This is the concret
 ### Combining sub-dimensions
 `Opportunity = (0.6 × Sectoral Reach) + (0.4 × Organizational Exposure)`
 Sectoral Reach is weighted slightly higher because it is the more durable signal, as it changes when the actor's behavior shifts, which is the property we are trying to track. Organizational Exposure remains important but is more volatile and partially controllable through our own actions.
+
 ---
 # Combining the Dimensions
 ### Weighting
@@ -165,6 +166,7 @@ The dimension scores are updated as warranted and the Threat Score is recomputed
 
 ### Score stability
 The score should be stable enough to be useful but responsive enough to be accurate. Expect most actors to shift by no more than 0.10 in a typical quarter; larger shifts warrant explicit documentation of what changed.
+
 ---
 # Worked Example 1: TAO
 A canonical case of high capability and high opportunity with zero intent against an hypothetical European telco organization.
