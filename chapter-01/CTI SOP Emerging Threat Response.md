@@ -47,8 +47,9 @@ Capture ID, timestamp, owning analyst, source, source tier, one-paragraph summar
 **1.6 Decide whether a Threat Advisory is warranted**
 Not every item earns a formal advisory. A Threat Advisory is typically issued when the provisional severity is P1 or P2, or when external chatter is high enough that leadership will be asked about it.
 
-**1.7 Issue Threat Advisory (deliverable, conditional)**
-A short document, usually distributed via email, with narrow distribution: CISO/security leadership, SOC leadership, and key platform owners. Content includes what we know, provisional severity, expected next steps and timing. Explicitly states that a Threat Assessment will follow with exposure picture, detection guidance, and hunt package.
+**1.7 Issue Threat Advisory**
+A short document, usually distributed via email, with narrow distribution: security leadership, SOC leadership, and key platform owners. Content includes what we know, provisional severity, expected next steps and timing. Explicitly states that a Threat Assessment will follow with exposure picture, detection guidance, and hunt package.
+
 ---
 # Phase 2: Exposure Assessment
 Exposure is multi-dimensional. Depending on the trigger type, the analyst evaluates one or more of the following dimensions:
@@ -89,6 +90,7 @@ State explicitly how complete and reliable the exposure picture is. Confidence i
 
 **2.8 Gate decision (proceed / deprioritize / close)**
 Decide whether to escalate to Phase 3, downgrade to passive tracking, or close the item. This is the moment where CTI prevents wasted cycles across the organization.
+
 ---
 # Phase 3: Deep-Dive Analysis
 **3.1 Deep threat analysis**
@@ -113,6 +115,7 @@ Assist Detection Engineering in creating a structured hunt package, so hunters c
 
 **3.5 Working-level coordination throughout**
 CTI maintains continuous informal contact with SOC, Detection Engineering, Threat Hunting, and relevant teams via Teams/Slack during this phase. Recipient teams should not wait for the Threat Assessment to begin work; they should already have early access to draft detection logic and hunt hypotheses.
+
 ---
 # Phase 4: Stakeholder Notification & Final Threat Assessment
 **4.1 Draft Threat Assessment**
@@ -161,6 +164,7 @@ The tracking entry now records who was notified, when, and who acknowledged. Clo
 
 **5.4 Archive in CTI knowledge base**
 The Threat Advisory, Exposure Assessment, Hunt Package and Threat Assessment are archived together, as this becomes reference material for future similar events.
+
 ---
 # Appendix: Cross-Cutting Principles
 * **CTI informs and enables; CTI does not own action.** The team is the authoritative source on the threat, not the executor of patching, detection, hunting, or vendor engagement.
