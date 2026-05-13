@@ -61,6 +61,7 @@ This book is for cyber threat intelligence analysts, threat hunters, detection e
 
 | Chapter | Title | Folder | Contents |
 | ------- | ----------------------------------------------------------- | ------------- | ------------------------------- |
+| 1 | Revisiting CTI for Advanced Threat Hunting | `chapter-01/` | CTI SOPs and Workflow |
 | 3 | Deep Dive – CTI Collection and Enrichment for APTs | `chapter-03/` | APT41 adversary profile |
 | 4 | Core Principles of Proactive Threat Hunting | `chapter-04/` | Hunting queries |
 | 5 | Understanding Data Sources for Threat Hunting | `chapter-05/` | Hunting queries |
